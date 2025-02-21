@@ -88,6 +88,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<finalName>mega-city-cab-service-backend</finalName>
 	</build>
 
 </project>
