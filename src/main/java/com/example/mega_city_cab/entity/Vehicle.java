@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Vehicle {
     @Id
-
     private String vehicleId;
     private String model;
     private String category;
@@ -21,7 +20,7 @@ public class Vehicle {
     private String number;
     private String selectedDriverId;
     private String vehicleImageUrl;
-    private Boolean available=true;
+    private boolean available = true;
     private double baseRate;
     private double driverRate;
     
