@@ -2,50 +2,103 @@ package com.example.mega_city_cab.util;
 
 import java.util.Date;
 import java.util.function.Function;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import org.springframework.stereotype.Component;
+
+import com.example.mega_city_cab.entity.Admin;
+import com.example.mega_city_cab.entity.Customer;
+import com.example.mega_city_cab.entity.Driver;
+import com.example.mega_city_cab.repository.AdminRepository;
+import com.example.mega_city_cab.repository.CustomerRepository;
+import com.example.mega_city_cab.repository.DriverRepository;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 
 
 @Component
 public class JwtUtil {
-    private String SECRET_KEY = "jbjhgcfhgdhgcghvhbjjgjjjjscevevkdwjbfwnwknwkgh";
+    @Autowired
+    private CustomerRepository customerRepository;
+    @Autowired
+    private AdminRepository adminRepository;
 
-    public String generateToken( UserDetails userDetails, String role){
+    @Value("${app.secret}")
+    private String secret;
+    @Autowired
+    private DriverRepository driverRepository;
 
-        return Jwts.builder()
-                    .setSubject(userDetails.getUsername())
-                    .claim(role, role.replace("ROLE", ""))
-                    .setIssuedAt(new Date())
-                    .setExpiration(new Date(System.currentTimeMillis()+ 1000 * 60 *10))
-                    .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
-                    .compact();
+    private SecretKey key() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret)); // Generate key with secret
     }
 
-    public String extractUsername(String token){
+    public String generateToken(Authentication authentication) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        String role = userDetails.getAuthorities().stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .orElse("USER");
+
+        String userId = null;
+
+        if (role.equals("ROLE_CUSTOMER")) {
+            userId = customerRepository.findByEmail(userDetails.getUsername())
+                    .map(Customer::getCustomerId).orElse(null);
+        } else if (role.equals("ROLE_DRIVER")) {
+            userId = driverRepository.findByEmail(userDetails.getUsername())
+                    .map(Driver::getDriverId).orElse(null);
+        } else if (role.equals("ROLE_ADMIN")) {
+            userId = adminRepository.findByEmail(userDetails.getUsername())
+                    .map(Admin::getAId).orElse(null);
+        }
+
+        return Jwts.builder()
+                .setSubject(userDetails.getUsername())
+                .claim("role", role)
+                .claim("userId", userId) // Store userId in token
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) 
+                .signWith(key(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    public String extractRole(String token){
-        return extractClaim(token, Claims-> Claims.get("role",String.class)); 
+    public String extractRole(String token) {
+        return extractClaim(token, claims -> claims.get("role", String.class));
     }
 
-    public<T> T extractClaim(String token, Function<Claims, T>claimResolcer){
-
-        Claims claims = Jwts.parserBuilder().setSigningKey(SECRET_KEY).build().parseClaimsJws(token).getBody();
-            return claimResolcer.apply(claims);
+    public String extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", String.class));
     }
 
-    public boolean validateToken(String token, UserDetails userDetails){
-        final String username = extractUsername(token);
-
-            return  username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        Claims claims = Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(token).getBody();
+        return claimsResolver.apply(claims);
     }
 
-    private boolean isTokenExpired(String token){
-        return extractClaim(token,Claims::getExpiration).before(new Date());
+    public boolean validateToken(String token, UserDetails userDetails) {
+        final String username = extractEmail(token);
+        final String userId = extractUserId(token);
+
+        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    }
+
+    private boolean isTokenExpired(String token) {
+        return extractClaim(token, Claims::getExpiration).before(new Date());
     }
 }

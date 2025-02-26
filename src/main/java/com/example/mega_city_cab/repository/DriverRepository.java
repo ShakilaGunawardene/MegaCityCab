@@ -11,7 +11,7 @@ import com.example.mega_city_cab.entity.Driver;
 @Repository
 public interface DriverRepository extends MongoRepository<Driver, String> {
 
-    Optional<Driver> findByEmail(String driverEmail);
+    Optional<Driver> findByEmail(String email);
 
     boolean existsByEmail(String email);
 

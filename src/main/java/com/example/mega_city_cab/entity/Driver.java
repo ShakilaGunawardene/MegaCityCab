@@ -25,5 +25,6 @@ public class Driver {
     private String password;
     private String vehicleId;
     private boolean hasOwnCar = false;
+    private boolean available = true;
     
 }

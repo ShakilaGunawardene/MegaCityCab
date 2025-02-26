@@ -18,7 +18,7 @@ public class Vehicle {
     private String category;
     private Integer passengers;
     private String number;
-    private String selectedDriverId;
+    private String assignedDriverId;
     private String vehicleImageUrl;
     private boolean available = true;
     private double baseRate;
