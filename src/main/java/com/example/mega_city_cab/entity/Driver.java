@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Document(collation = "driver")
+@Document(collection = "driver")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

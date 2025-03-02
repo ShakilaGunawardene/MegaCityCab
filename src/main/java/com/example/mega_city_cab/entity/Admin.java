@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Document(collation = "admin")
+@Document(collection = "admins")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -15,11 +15,10 @@ import lombok.NoArgsConstructor;
 public class Admin {
    
     @Id
-   
     private String aId;
     private String adminName;
     private String email;
     private String password;
-    private String role="Admin";
+    private String role="ADMIN";
     
 }

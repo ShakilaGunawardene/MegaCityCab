@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.mega_city_cab.entity.Admin;
@@ -17,25 +19,28 @@ import com.example.mega_city_cab.service.AdminService;
 
 @RestController
 @CrossOrigin(origins = "*")
+@RequestMapping("/auth/admin")
 
 public class AdminController {
 
-    @Autowired
+   @Autowired
     private AdminService adminService;
 
-    @GetMapping("/admins")
-    public List<Admin>getAllAdmins(){
-        return adminService.getAllAdmins();
+    @GetMapping("/viewAdmins")
+    public ResponseEntity<List<Admin>> getAllAdmins() {
+        List<Admin> admins = adminService.getAllAdmins();
+        return new ResponseEntity<>(admins, HttpStatus.OK);
     }
-    @GetMapping("/{id}")
-    public ResponseEntity<Admin> getAdminById(@PathVariable String id){
-        Admin admin = adminService.getAdminById(id);
-        return ResponseEntity.ok(admin);
+
+    @GetMapping("/{aId}")
+    public ResponseEntity<Admin> getAdminById(@PathVariable String aId) {
+        Admin admin = adminService.getAdminById(aId);
+        return new ResponseEntity<>(admin, HttpStatus.OK);
     }
+
     @PostMapping("/createAdmin")
-    public ResponseEntity<Admin> createAdmin(@RequestBody Admin admin){
-        Admin createdAdmin = adminService.createAdmin(admin);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdAdmin);
+    public ResponseEntity<?> createAdmin(@RequestBody Admin admin) {
+        return adminService.createAdmin(admin);
     }
 
    

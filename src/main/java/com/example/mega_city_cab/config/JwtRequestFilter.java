@@ -21,7 +21,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter{
-    
     @Autowired
     private JwtUtil jwtUtil;
 
@@ -29,35 +28,27 @@ public class JwtRequestFilter extends OncePerRequestFilter{
     private UserDetailsService userDetailsService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain Chain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            throws ServletException, IOException{
+        String token = request.getHeader("Authorization");
+        if(token != null && token.startsWith("Bearer ")){
+            token = token.substring(7);
+            String email = jwtUtil.extractEmail(token);
+            if(email != null && SecurityContextHolder.getContext().getAuthentication() == null){
+                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-
-                String token = request.getHeader("Authorization");
-                if (token != null && token.startsWith("Bearer")) {
-
-                    token = token.substring(7);
-                    String email= jwtUtil.extractUsername(token);
-                    if (email != null && SecurityContextHolder.getContext().getAuthentication()== null) {
-
-                        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-
-                        if (jwtUtil.validateToken(token, userDetails)) {
-
-                            String role = "ROLE_"+jwtUtil.extractRole(token);
-                            SecurityContextHolder.getContext().setAuthentication(
-
-                                new UsernamePasswordAuthenticationToken(userDetails, null, List.of(new SimpleGrantedAuthority(role)))
-                            );
-
-                        }
-                    }
-
-
-
+                if(jwtUtil.validateToken(token, userDetails)){
+                    String role = "ROLE_" + jwtUtil.extractRole(token);
+                    SecurityContextHolder.getContext().setAuthentication(
+                        new UsernamePasswordAuthenticationToken(userDetails, null, List.of(new SimpleGrantedAuthority(role)))
+                    );
                 }
-        Chain.doFilter(request, response);
+            }
+        }
+        chain.doFilter(request, response);
     }
+
+  
 }
     
 

@@ -26,17 +26,18 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/all/**").permitAll()
-                        .requestMatchers("/cars/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/cars/**").hasAuthority("ROLE_DRIVER")
+        .authorizeHttpRequests(requests -> requests
+        .requestMatchers("/auth/**").permitAll()
+        .requestMatchers("/all/**").permitAll()
+        .requestMatchers("/cars/**").hasAuthority("ROLE_ADMIN")
+        .requestMatchers("/cars/**").hasAuthority("ROLE_DRIVER")
+        .requestMatchers("/bookings/**").authenticated()
 
-                        .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/driver/**").hasAuthority("ROLE_DRIVER")
-                        .requestMatchers("/customer/**").hasAuthority("ROLE_CUSTOMER")
-                        .anyRequest().authenticated())
-                .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
+        .requestMatchers("/driver/**").hasAuthority("ROLE_DRIVER")
+        .requestMatchers("/customer/**").hasAuthority("ROLE_CUSTOMER")
+        .anyRequest().authenticated())
+        .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
                 );
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);

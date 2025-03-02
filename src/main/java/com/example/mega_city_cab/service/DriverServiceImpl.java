@@ -8,7 +8,10 @@ import org.springframework.stereotype.Service;
 import com.example.mega_city_cab.entity.Driver;
 import com.example.mega_city_cab.repository.DriverRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class DriverServiceImpl implements DriverService {
 
 

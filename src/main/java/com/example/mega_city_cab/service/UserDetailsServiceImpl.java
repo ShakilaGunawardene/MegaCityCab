@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
 
 import com.example.mega_city_cab.entity.Admin;
 import com.example.mega_city_cab.entity.Customer;
@@ -15,6 +16,7 @@ import com.example.mega_city_cab.repository.AdminRepository;
 import com.example.mega_city_cab.repository.CustomerRepository;
 import com.example.mega_city_cab.repository.DriverRepository;
 
+@Service
 public class UserDetailsServiceImpl implements UserDetailsService{
 
     @Autowired
@@ -52,7 +54,7 @@ public class UserDetailsServiceImpl implements UserDetailsService{
         if(driver.isPresent()){
             return User.withUsername(driver.get().getEmail())
             .password(driver.get().getPassword())
-            .roles("RIVER")
+            .roles("DRIVER")
             .build();
 
         }

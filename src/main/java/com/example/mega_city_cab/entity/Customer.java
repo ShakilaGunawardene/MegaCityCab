@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Document(collation = "customer")
+@Document(collection = "customer")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,7 +22,7 @@ public class Customer {
     private String email;
     private String city;
     private String password;
-    private String role="Customer";
+    private String role="CUSTOMER";
 
 
     
