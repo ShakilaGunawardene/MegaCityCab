@@ -17,7 +17,7 @@ public interface DriverRepository extends MongoRepository<Driver, String> {
 
     List<Driver> findByAvailable(boolean available);
 
-    Optional<Driver> findFirstByAvailableAndHasOwnCarFalse(boolean available);
+    Optional<Driver> findFirstByAvailableAndHasOwnVehicleFalse(boolean available);
 
     Optional<Driver> findByVehicleId(String vehicleId);  
 

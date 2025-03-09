@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +23,7 @@ import com.example.mega_city_cab.service.VehicleService;
 
 @RestController
 @CrossOrigin(origins = "*")
+
 public class VehicleController {
 
      @Autowired
@@ -30,7 +32,7 @@ public class VehicleController {
     @Autowired
     private VehicleService vehicleService;
 
-    @GetMapping("/vehicle")
+    @GetMapping("/all/viewVehicle")
     public List<Vehicle> getAllVehicles() {
         return vehicleService.getAllVehicles();
     }
@@ -41,13 +43,13 @@ public class VehicleController {
         return new ResponseEntity<>(vehicleService.getVehicleById(vehicleId), HttpStatus.OK);
     }
 
-    @PostMapping("/createVehicle")
-    public ResponseEntity<Vehicle> createCar(@RequestParam String brand,
+     @PostMapping("/auth/cars/createVehicle")
+    public ResponseEntity<Vehicle> createVehicle(
+            @RequestParam String brand,
             @RequestParam String model,
             @RequestParam String category,
             @RequestParam Integer passengers,
             @RequestParam String number,
-            @RequestParam String availableStatus,
             @RequestParam MultipartFile vehicleImg) throws IOException {
 
         String vehicleImage = cloudinaryService.uploadImage(vehicleImg);
@@ -57,11 +59,12 @@ public class VehicleController {
         vehicle.setCategory(category);
         vehicle.setPassengers(passengers);
         vehicle.setNumber(number);
+        vehicle.setVehicleImageUrl(vehicleImage);
         
 
         Vehicle savedVehicle = vehicleService.createVehicle(vehicle);
         return ResponseEntity.ok(savedVehicle);
-    }
+    } 
 
     @PutMapping("/updateVehicle/{vehicleId}")
     public ResponseEntity<Vehicle> updateVehicle(@PathVariable String vehicleId, @RequestBody Vehicle vehicle) {

@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping(value = "/booking")
+@RequestMapping(value = "/auth/booking")
 @Slf4j
 public class BookingController {
     

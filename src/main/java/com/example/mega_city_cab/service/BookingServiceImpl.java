@@ -208,7 +208,7 @@ public class BookingServiceImpl implements BookingService {
                 throw new InvalidBookingException("Vehicles's assigned driver is not available");
             }
         } else {
-            driver = driverRepository.findFirstByAvailableAndHasOwnCarFalse(true)
+            driver = driverRepository.findFirstByAvailableAndHasOwnVehicleFalse(true)
                     .orElseThrow(() -> new ResourceNotFoundException("No available driver"));
         }
 

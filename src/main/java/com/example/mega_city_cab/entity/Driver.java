@@ -15,16 +15,15 @@ import lombok.NoArgsConstructor;
 public class Driver {
 
     @Id
-
     private String driverId;
     private String name;
     private String licenseNumber;
     private String email;
     private String phoneNumber;
-    private String role="DRIVER";
+    private String role = "DRIVER";
     private String password;
     private String vehicleId;
-    private boolean hasOwnCar = false;
+    private boolean hasOwnVehicle = false;
     private boolean available = true;
     
 }
