@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,15 +36,14 @@ public class VehicleController {
         return vehicleService.getAllVehicles();
     }
 
-    @GetMapping("/{vehicleId}")
+    @GetMapping("/all/{vehicleId}")
     public ResponseEntity<Vehicle> getVehicleById(@PathVariable String vehicleId) {
         Vehicle vehicle = vehicleService.getVehicleById(vehicleId);
         return new ResponseEntity<>(vehicleService.getVehicleById(vehicleId), HttpStatus.OK);
     }
 
-     @PostMapping("/auth/cars/createVehicle")
+     @PostMapping("/auth/vehicles/createVehicle")
     public ResponseEntity<Vehicle> createVehicle(
-            @RequestParam String brand,
             @RequestParam String model,
             @RequestParam String category,
             @RequestParam Integer passengers,
@@ -53,6 +51,7 @@ public class VehicleController {
             @RequestParam MultipartFile vehicleImg) throws IOException {
 
         String vehicleImage = cloudinaryService.uploadImage(vehicleImg);
+        
 
         Vehicle vehicle = new Vehicle();
         vehicle.setModel(model);
@@ -66,13 +65,13 @@ public class VehicleController {
         return ResponseEntity.ok(savedVehicle);
     } 
 
-    @PutMapping("/updateVehicle/{vehicleId}")
+    @PutMapping("/all/updateVehicle/{vehicleId}")
     public ResponseEntity<Vehicle> updateVehicle(@PathVariable String vehicleId, @RequestBody Vehicle vehicle) {
         Vehicle updatedVehicle = vehicleService.updateVehicle(vehicleId, vehicle);
         return new ResponseEntity<>(updatedVehicle, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{vehicleId}")
+    @DeleteMapping("/all/{vehicleId}")
     public ResponseEntity<String> deleteVehicle(@PathVariable String vehicleId) {
         vehicleService.deleteVehicle(vehicleId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

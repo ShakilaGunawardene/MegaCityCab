@@ -1,44 +1,67 @@
 package com.example.mega_city_cab.entity;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "bookings")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class Booking {
-
     @Id
-    private String customerId;
-    private String driverId;
-    private String vehicleId;
     private String bookingId;
 
-    private String pickupDate;
+    private String customerId;
+
+    private String customerEmail;
+
+    private String vehicleId;
+
+    private String driverId;
+
     private String pickupLocation;
-    private String dropLocation;
-    private double tax;
-    private double totalAmount;
+
+    private String destination;
+
     private String bookingDate;
 
+    private String pickupDate;
+
+    private String pickupTime;
+
+    private double totalAmount;
+
+    @Transient
+    private String passengerName;
+
+    @Transient
+    private String passengerImage;
+
+    @Transient
+    private Double passengerRating;
+
+    private double tax;
+
     private boolean completed = false;
+
     private boolean driverRequired = false;
 
     private BookingStatus status = BookingStatus.PENDING;
+
     private String cancellationReason;
-    private String cancellatinDate;
+
     private String cancellationTime;
 
     private boolean refundIssued = false;
 
     private double refundAmount;
+
+    @Transient
+    private Driver driverDetails;
 
     public boolean canBeCancelled() {
         return status == BookingStatus.PENDING || status == BookingStatus.CONFIRMED;
@@ -47,6 +70,4 @@ public class Booking {
     public boolean canBeDeleted() {
         return status == BookingStatus.PENDING || status == BookingStatus.CONFIRMED;
     }
-
-    
 }

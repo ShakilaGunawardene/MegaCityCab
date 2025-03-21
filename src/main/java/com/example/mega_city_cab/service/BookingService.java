@@ -12,17 +12,15 @@ import com.example.mega_city_cab.entity.Booking;
 public interface BookingService {
 
     List<Booking> getAllBookings();
-
     Booking getBookingById(String bookingId);
-
     Booking createBooking(BookingRequestDTO request);
-
     Booking cancelBooking(String customerId, CancellationRequest request);
-
     List<Booking> getCustomerBookings(String customerId);
-
     Booking getBookingDetails(String customerId, String bookingId);
+    Booking confirmBooking(String bookingId);
+    void deleteBooking(String customerId, String bookingId);
+    boolean hasBookingWithDriver(String customerEmail, String driverId);
 
-    void deleteBooking(String bookingId, String customerId);
+    List<Booking> getAvailableBookings();
     
 }

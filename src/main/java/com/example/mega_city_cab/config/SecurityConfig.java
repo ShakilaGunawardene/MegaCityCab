@@ -29,6 +29,7 @@ public class SecurityConfig {
         .authorizeHttpRequests(requests -> requests
         .requestMatchers("/auth/**").permitAll()
         .requestMatchers("/all/**").permitAll()
+        .requestMatchers("/admin/**").permitAll()
         .requestMatchers("/cars/**").hasAuthority("ROLE_ADMIN")
         .requestMatchers("/cars/**").hasAuthority("ROLE_DRIVER")
         .requestMatchers("/bookings/**").authenticated()

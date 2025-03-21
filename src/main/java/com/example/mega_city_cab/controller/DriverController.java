@@ -2,36 +2,32 @@ package com.example.mega_city_cab.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.mega_city_cab.entity.Booking;
+import com.example.mega_city_cab.entity.Customer;
 import com.example.mega_city_cab.entity.Driver;
 import com.example.mega_city_cab.entity.Vehicle;
+import com.example.mega_city_cab.exception.ResourceNotFoundException;
+import com.example.mega_city_cab.repository.CustomerRepository;
+import com.example.mega_city_cab.service.BookingService;
 import com.example.mega_city_cab.service.CloudinaryService;
 import com.example.mega_city_cab.service.DriverService;
 
-import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/auth/driver")
 @CrossOrigin(origins = "*")
+@RequestMapping(value = "/auth/driver")
 @Slf4j
 public class DriverController {
     @Autowired
@@ -40,82 +36,100 @@ public class DriverController {
     @Autowired
     private CloudinaryService cloudinaryService;
 
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private BookingService bookingService;
+
     @GetMapping("/getalldrivers")
     public List<Driver> getAllDrivers() {
         return driverService.getAllDrivers();
     }
 
-    @GetMapping("/{driverId}")
-    public Driver getDriverById(@PathVariable String driverId) {
-        return driverService.getDriverById(driverId);
+    @GetMapping("/getdriver/{driverId}")
+    public ResponseEntity<Driver> getDriverById(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable String driverId) {
+        String email = userDetails.getUsername();
+
+        // Check if the user has a booking with this driver
+        boolean hasBooking = bookingService.hasBookingWithDriver(email, driverId);
+        if (!hasBooking) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        Driver driver = driverService.getDriverById(driverId);
+        return ResponseEntity.ok(driver);
     }
 
     @PostMapping(value = "/createdriver",
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createDriver(
-            @RequestParam("name") String name,
+            @RequestParam("driverName") String driverName,
             @RequestParam("email") String email,
-            @RequestParam("licenseNumber") String licenseNumber,
-            @RequestParam("phoneNumber") String phoneNumber,
+            @RequestParam("driverLicense") String driverLicense,
+            @RequestParam("phone") String phone,
             @RequestParam("password") String password,
-            @RequestParam("hasOwnVehicle") boolean hasOwnVehicle,
+            @RequestParam("hasOwnCar") boolean hasOwnCar,
+            @RequestParam(value = "licensePlate", required = false) String licensePlate,
             @RequestParam(value = "model", required = false) String model,
-            @RequestParam(value = "category", required = false) String category,
-            @RequestParam(value = "passengers", required = false) Integer passengers,
-            @RequestParam(value = "number", required = false) String number,
+            @RequestParam(value = "numberOfSeats", required = false) Integer numberOfSeats,
             @RequestParam(value = "baseRate", required = false) Double baseRate,
             @RequestParam(value = "driverRate", required = false) Double driverRate,
-            @RequestParam(value = "vehicleImage", required = false) MultipartFile vehicleImage
-            ) {
+            @RequestParam(value = "carImage", required = false) MultipartFile carImage,
+            @RequestParam(value = "profileImage") MultipartFile profileImage) {
 
-        try{
+        try {
             Driver driver = new Driver();
-            driver.setName(name);
-            driver.setLicenseNumber(licenseNumber);
+            driver.setName(driverName);
             driver.setEmail(email);
-            driver.setPhoneNumber(phoneNumber);
+            driver.setLicenseNumber(driverLicense);
+            driver.setPhoneNumber(phone);
             driver.setPassword(password);
-            driver.setHasOwnVehicle(hasOwnVehicle);
+            driver.setHasOwnVehicle(hasOwnCar);
 
-           
+            // if (profileImage != null && !profileImage.isEmpty()) {
+            //     String profileImageUrl = cloudinaryService.uploadImage(profileImage);
+            //     driver.setProfileImage(profileImageUrl);
+            // }
+
             Vehicle vehicle = null;
-            if(hasOwnVehicle){
+            if (hasOwnCar) {
                 vehicle = new Vehicle();
-                vehicle.setNumber(number);
+                vehicle.setNumber(licensePlate);
                 vehicle.setModel(model);
-                vehicle.setCategory(category);
-
-                if (passengers != null) {
-                    vehicle.setPassengers(passengers);
-                } else {
-                    
-                    vehicle.setPassengers(4); 
-                }
-
-                if (baseRate != null) {
-                    vehicle.setBaseRate(baseRate);
-                }
-
-                if (driverRate != null) {
-                    vehicle.setDriverRate(driverRate);
-                }
-
-                if(vehicleImage != null && !vehicleImage.isEmpty()){
-                    String vehicleImgUrl = cloudinaryService.uploadImage(vehicleImage);
-                    vehicle.setVehicleImageUrl(vehicleImgUrl);
+                vehicle.setPassengers(numberOfSeats != null ? numberOfSeats : 4);
+                vehicle.setBaseRate(baseRate != null ? baseRate : 0.0);
+                vehicle.setDriverRate(driverRate != null ? driverRate : 0.0);
+                if (carImage != null && !carImage.isEmpty()) {
+                    String carImageUrl = cloudinaryService.uploadImage(carImage);
+                    vehicle.setVehicleImageUrl(carImageUrl);
                 }
             }
 
             return driverService.createDriver(driver, vehicle);
 
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("Error creating driver: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error creating driver: " + e.getMessage());
         }
-    } 
-    
+    }
+
+    @PutMapping("/updatedriver/{driverId}")
+    public ResponseEntity<Driver> updateDriver(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable String driverId,
+            @RequestBody Driver driver) {
+        String email = userDetails.getUsername();
+        log.info("Updating driver with ID: {} for email: {}", driverId, email);
+
+        Driver updatedDriver = driverService.updateDriver(driverId, driver);
+        return ResponseEntity.ok(updatedDriver);
+    }
+
     @PutMapping("/{driverId}/availability")
     public ResponseEntity<Driver> updateAvailability(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -132,14 +146,27 @@ public class DriverController {
         return ResponseEntity.ok(driver);
     }
 
-     @GetMapping("/{driverId}/bookings")
+    @GetMapping("/{driverId}/bookings")
     public ResponseEntity<List<Booking>> getDriverBookings(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable String driverId) {
         String email = userDetails.getUsername();
         log.info("Fetching bookings for driver: {} for email: {}", driverId, email);
 
-        List<Booking> bookings = driverService.getDriverBookings(driverId);
+        Driver driver = driverService.getDriverById(driverId);
+        if (!email.equals(driver.getEmail())) {
+            log.warn("Unauthorized access attempt by user: {}", email);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        List<Booking> bookings = driverService.getDriverBookings(driverId).stream()
+                .map(booking -> {
+                    Customer customer = customerRepository.findById(booking.getCustomerId())
+                            .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+                    booking.setPassengerName(customer.getName());
+                    return booking;
+                })
+                .collect(Collectors.toList());
         return ResponseEntity.ok(bookings);
     }
 
@@ -152,11 +179,5 @@ public class DriverController {
 
         driverService.deleteDriver(driverId);
         return ResponseEntity.noContent().build();
-    }
-
-    @PutMapping("/updateDriver/{driverId}")
-    public ResponseEntity<Driver> updateDriver(@PathVariable String driverId, @RequestBody Driver driver) {
-        log.info("Updating driver with ID: {}", driverId);
-        return ResponseEntity.ok(driverService.updateDriver(driverId, driver));
     }
 }
